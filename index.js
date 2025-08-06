@@ -94,7 +94,7 @@ app.post('/api/chat', async (req, res) => {
 
         // Create chat completion
         const completion = await openai.chat.completions.create({
-            model: "gpt-4", // or "gpt-3.5-turbo" for cost savings
+            model: "gpt-3.5-turbo", // or "gpt-3.5-turbo" for cost savings
             messages: [
                 {
                     role: "system",
@@ -160,7 +160,7 @@ app.post('/api/chat-with-history', async (req, res) => {
         ];
 
         const completion = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-3.5-turbo",
             messages: openAIMessages,
             max_tokens: 300,
             temperature: 0.7,
@@ -189,7 +189,7 @@ app.post('/api/recommendations', async (req, res) => {
         const prompt = `Based on these preferences: ${JSON.stringify(preferences)}, recommend 3 specific perfumes from our collection. Include the name, brief description, and why it matches their preferences.`;
 
         const completion = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-3.5-turbo",
             messages: [
                 {
                     role: "system",
