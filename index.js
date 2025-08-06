@@ -19,15 +19,30 @@ const app = express();
 // // Handle preflight requests
 // app.options('/api/chat', cors());
 
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type']
-}));
-app.use(express.json());
+// app.use(cors({
+//     origin: '*',
+//     methods: ['GET', 'POST', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type']
+// }));
+// app.use(express.json());
 
-// Handle preflight requests
-app.options('/api/chat', cors());
+// // Handle preflight requests
+// app.options('/api/chat', cors());
+
+// Middleware - Simple CORS for testing
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+        return;
+    }
+    next();
+});
+
+app.use(express.json());
 
 
 // Initialize OpenAI
