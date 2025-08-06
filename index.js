@@ -8,8 +8,16 @@ const OpenAI = require('openai');
 const app = express();
 
 // Middleware
-app.use(cors());
+//app.use(cors());
+app.use(cors({
+    origin: ['https://zm0kik-wv.myshopify.com', 'https://your-custom-domain.com'],
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+// Handle preflight requests
+app.options('/api/chat', cors());
 
 // Initialize OpenAI
 const openai = new OpenAI({
