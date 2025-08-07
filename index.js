@@ -30,19 +30,49 @@ const app = express();
 // app.options('/api/chat', cors());
 
 // Middleware - Simple CORS for testing
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+//     res.header('Access-Control-Allow-Headers', 'Content-Type');
     
+//     if (req.method === 'OPTIONS') {
+//         res.sendStatus(200);
+//         return;
+//     }
+//     next();
+// });
+
+// app.use(express.json());
+app.use((req, res, next) => {
+    // Log the request for debugging
+    console.log(`${req.method} ${req.url} from origin: ${req.headers.origin}`);
+    
+    // Set CORS headers
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    
+    // Handle preflight OPTIONS requests
     if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
+        console.log('✅ Handling OPTIONS preflight request');
+        res.status(200).end();
         return;
     }
+    
     next();
 });
 
 app.use(express.json());
+
+// Explicit OPTIONS route as backup
+app.options('*', (req, res) => {
+    console.log('✅ Explicit OPTIONS handler triggered');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.status(200).end();
+});
 
 
 // Initialize OpenAI
