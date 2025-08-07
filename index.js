@@ -84,72 +84,72 @@ Remember: You're here to help customers discover their signature scent!
 `;
 
 // Chat endpoint
-// app.post('/api/chat', async (req, res) => {
-//     try {
-//         const { message, context } = req.body;
+app.post('/api/chat', async (req, res) => {
+    try {
+        const { message, context } = req.body;
 
-//         if (!message) {
-//             return res.status(400).json({ error: 'Message is required' });
-//         }
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
 
-//         // Create chat completion
-//         const completion = await openai.chat.completions.create({
-//             model: "gpt-3.5-turbo", // or "gpt-3.5-turbo" for cost savings
-//             messages: [
-//                 {
-//                     role: "system",
-//                     content: PERFUME_SYSTEM_PROMPT
-//                 },
-//                 {
-//                     role: "user",
-//                     content: message
-//                 }
-//             ],
-//             max_tokens: 300,
-//             temperature: 0.7,
-//         });
+        // Create chat completion
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo", // or "gpt-3.5-turbo" for cost savings
+            messages: [
+                {
+                    role: "system",
+                    content: PERFUME_SYSTEM_PROMPT
+                },
+                {
+                    role: "user",
+                    content: message
+                }
+            ],
+            max_tokens: 300,
+            temperature: 0.7,
+        });
 
-//         const response = completion.choices[0].message.content;
+        const response = completion.choices[0].message.content;
 
-//         res.json({
-//             response: response,
-//             timestamp: new Date().toISOString()
-//         });
+        res.json({
+            response: response,
+            timestamp: new Date().toISOString()
+        });
 
-//     } catch (error) {
-//         console.error('OpenAI API Error:', error);
+    } catch (error) {
+        console.error('OpenAI API Error:', error);
         
-//         // Handle different types of errors
-//         if (error.code === 'insufficient_quota') {
-//             res.status(402).json({ 
-//                 error: 'API quota exceeded. Please check your OpenAI billing.' 
-//             });
-//         } else if (error.code === 'invalid_api_key') {
-//             res.status(401).json({ 
-//                 error: 'Invalid API key. Please check your OpenAI configuration.' 
-//             });
-//         } else {
-//             res.status(500).json({ 
-//                 error: 'Sorry, I\'m having trouble right now. Please try again later.' 
-//             });
-//         }
-//     }
-// });
+        // Handle different types of errors
+        if (error.code === 'insufficient_quota') {
+            res.status(402).json({ 
+                error: 'API quota exceeded. Please check your OpenAI billing.' 
+            });
+        } else if (error.code === 'invalid_api_key') {
+            res.status(401).json({ 
+                error: 'Invalid API key. Please check your OpenAI configuration.' 
+            });
+        } else {
+            res.status(500).json({ 
+                error: 'Sorry, I\'m having trouble right now. Please try again later.' 
+            });
+        }
+    }
+});
 
 
 //test api 
 // Temporary mock response for testing
-app.post('/api/chat', async (req, res) => {
-    const { message } = req.body;
+// app.post('/api/chat', async (req, res) => {
+//     const { message } = req.body;
     
-    // Mock perfume consultant response
-    const mockResponse = `For ${message}, I'd recommend our signature collection. Tom Ford Black Orchid would be perfect - it's a luxurious, mysterious fragrance with notes of black truffle, bergamot, and black orchid. It's ideal for evening occasions and makes a bold statement. Would you like to know more about this fragrance or explore other options?`;
+//     // Mock perfume consultant response
+//     const mockResponse = `For ${message}, I'd recommend our signature collection. Tom Ford Black Orchid would be perfect - it's a luxurious, mysterious fragrance with notes of black truffle, bergamot, and black orchid. It's ideal for evening occasions and makes a bold statement. Would you like to know more about this fragrance or explore other options?`;
     
-    res.json({
-        response: mockResponse,
-        timestamp: new Date().toISOString()
-    });
-});
+//     res.json({
+//         response: mockResponse,
+//         timestamp: new Date().toISOString()
+//     });
+// });
 
 
 // Health check endpoint
