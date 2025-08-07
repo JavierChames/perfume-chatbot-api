@@ -44,36 +44,24 @@ const app = express();
 
 // app.use(express.json());
 app.use((req, res, next) => {
-    // Log the request for debugging
-    console.log(`${req.method} ${req.url} from origin: ${req.headers.origin}`);
+    console.log(`📞 ${req.method} ${req.url} from: ${req.headers.origin}`);
     
-    // Set CORS headers
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    // Always set CORS headers
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'false');
     
-    // Handle preflight OPTIONS requests
+    // Handle preflight immediately
     if (req.method === 'OPTIONS') {
-        console.log('✅ Handling OPTIONS preflight request');
-        res.status(200).end();
-        return;
+        console.log('✅ OPTIONS handled');
+        return res.status(200).end();
     }
     
     next();
 });
 
 app.use(express.json());
-
-// Explicit OPTIONS route as backup
-app.options('*', (req, res) => {
-    console.log('✅ Explicit OPTIONS handler triggered');
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.status(200).end();
-});
-
 
 // Initialize OpenAI
 const openai = new OpenAI({
