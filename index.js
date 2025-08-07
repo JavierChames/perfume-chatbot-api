@@ -1,5 +1,5 @@
 // Secure Perfume Store ChatGPT Backend API
-// Production-ready with security improvements
+// Production-ready with security improvements and enhanced logging
 
 const express = require('express');
 const OpenAI = require('openai');
@@ -63,7 +63,7 @@ function rateLimit(req, res, next) {
     next();
 }
 
-// Secure CORS Middleware
+// CRITICAL: Secure CORS Middleware (DO NOT COMMENT OUT)
 app.use((req, res, next) => {
     const origin = req.headers.origin;
     
@@ -91,6 +91,20 @@ app.use((req, res, next) => {
         console.log('✅ OPTIONS preflight handled');
         return res.status(200).end();
     }
+    
+    next();
+});
+
+// Request timing middleware (after CORS)
+app.use((req, res, next) => {
+    req.startTime = Date.now();
+    
+    const originalSend = res.send;
+    res.send = function(data) {
+        const duration = Date.now() - req.startTime;
+        console.log(`⏱️ Request completed in ${duration}ms`);
+        return originalSend.call(this, data);
+    };
     
     next();
 });
@@ -172,12 +186,14 @@ SCENT FAMILIES TO REFERENCE:
 Remember: You're here to help customers discover their signature scent!
 `;
 
-// Main chat endpoint
+// Main chat endpoint with enhanced logging
 app.post('/api/chat', validateChatInput, async (req, res) => {
     try {
         const { message, context } = req.body;
+        const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
 
-        console.log('💬 Processing chat request:', message.substring(0, 50) + '...');
+        console.log('💬 Processing chat request:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
+        console.log('👤 From IP:', clientIP);
 
         // Create chat completion
         const completion = await openai.chat.completions.create({
@@ -198,7 +214,11 @@ app.post('/api/chat', validateChatInput, async (req, res) => {
 
         const response = completion.choices[0].message.content;
         
+        // Enhanced logging with response content
         console.log('✅ ChatGPT response generated');
+        console.log('🤖 Response preview:', response.substring(0, 100) + (response.length > 100 ? '...' : ''));
+        console.log('📊 Response length:', response.length, 'characters');
+        console.log('💰 Tokens used:', completion.usage?.total_tokens || 'unknown');
 
         res.json({
             response: response,
@@ -207,6 +227,11 @@ app.post('/api/chat', validateChatInput, async (req, res) => {
 
     } catch (error) {
         console.error('❌ OpenAI API Error:', error.message);
+        console.error('🔍 Error details:', {
+            code: error.code,
+            type: error.type,
+            status: error.status
+        });
         
         // Handle different types of errors
         if (error.code === 'insufficient_quota') {
@@ -234,8 +259,9 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
-        security: 'enabled'
+        version: '1.0.1',
+        security: 'enabled',
+        cors: 'active'
     });
 });
 
@@ -243,6 +269,7 @@ app.get('/health', (req, res) => {
 app.post('/api/chat-with-history', async (req, res) => {
     try {
         const { messages } = req.body;
+        const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
 
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({ error: 'Messages array is required' });
@@ -251,6 +278,10 @@ app.post('/api/chat-with-history', async (req, res) => {
         if (messages.length > 20) {
             return res.status(400).json({ error: 'Too many messages in history. Maximum 20 allowed.' });
         }
+
+        console.log('💬 Processing chat with history, messages count:', messages.length);
+        console.log('👤 From IP:', clientIP);
+        console.log('📝 Latest message:', messages[messages.length - 1]?.content?.substring(0, 50) + '...');
 
         // Validate each message
         for (const msg of messages) {
@@ -280,6 +311,11 @@ app.post('/api/chat-with-history', async (req, res) => {
 
         const response = completion.choices[0].message.content;
 
+        // Enhanced logging
+        console.log('✅ ChatGPT response with history generated');
+        console.log('🤖 Response preview:', response.substring(0, 100) + (response.length > 100 ? '...' : ''));
+        console.log('💰 Tokens used:', completion.usage?.total_tokens || 'unknown');
+
         res.json({
             response: response,
             timestamp: new Date().toISOString()
@@ -293,14 +329,19 @@ app.post('/api/chat-with-history', async (req, res) => {
     }
 });
 
-// Get perfume recommendations based on preferences
+// Enhanced recommendations endpoint
 app.post('/api/recommendations', async (req, res) => {
     try {
         const { preferences } = req.body;
+        const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
         
         if (!preferences) {
             return res.status(400).json({ error: 'Preferences are required' });
         }
+
+        console.log('🎯 Processing recommendations request');
+        console.log('👤 From IP:', clientIP);
+        console.log('⚙️ Preferences:', JSON.stringify(preferences).substring(0, 100) + '...');
 
         const prompt = `Based on these preferences: ${JSON.stringify(preferences)}, recommend 3 specific perfumes from our collection. Include the name, brief description, and why it matches their preferences.`;
 
@@ -326,6 +367,11 @@ app.post('/api/recommendations', async (req, res) => {
 
         const recommendations = completion.choices[0].message.content;
 
+        // Enhanced logging
+        console.log('✅ Recommendations generated');
+        console.log('🤖 Recommendations preview:', recommendations.substring(0, 100) + '...');
+        console.log('💰 Tokens used:', completion.usage?.total_tokens || 'unknown');
+
         res.json({
             recommendations: recommendations,
             timestamp: new Date().toISOString()
@@ -341,6 +387,7 @@ app.post('/api/recommendations', async (req, res) => {
 
 // 404 handler
 app.use('*', (req, res) => {
+    console.log('❌ 404 - Endpoint not found:', req.method, req.url);
     res.status(404).json({ error: 'Endpoint not found' });
 });
 
@@ -355,6 +402,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Perfume ChatBot API running on port ${PORT}`);
     console.log(`🔒 Security: Enhanced CORS + Rate Limiting enabled`);
+    console.log(`📊 Enhanced Logging: Response previews + token usage tracking`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
 
